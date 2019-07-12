@@ -8,6 +8,7 @@ import os
 import sys
 import shutil
 import configparser
+import glob
 
 class qt(Generator):
     @property
@@ -40,7 +41,7 @@ class QtConan(ConanFile):
         return res
     submodules = getsubmodules()
 
-    name = "Qt"
+    name = "qt"
     version = "5.6.3"
     description = "Conan.io package for Qt library."
     url = "https://github.com/bincrafters/conan-qt"
@@ -48,6 +49,7 @@ class QtConan(ConanFile):
     license = "http://doc.qt.io/qt-5/lgpl.html"
     author = "Bincrafters <bincrafters@gmail.com>"
     exports = ["LICENSE.md", "qtmodules.conf"]
+    exports_sources = ["patches/*"]
     settings = "os", "arch", "compiler", "build_type"
 
     options = dict({
@@ -133,7 +135,7 @@ class QtConan(ConanFile):
                 installer.install(" ".join([item + self.system_package_architecture() for item in pack_names]))
 
     def source(self):
-        url = "http://download.qt.io/official_releases/qt/{0}/{1}/single/qt-everywhere-opensource-src-{1}"\
+        url = "https://download.qt.io/archive/qt/{0}/{1}/single/qt-everywhere-opensource-src-{1}"\
             .format(self.version[:self.version.rfind('.')], self.version)
         if tools.os_info.is_windows:
             tools.get("%s.zip" % url)
@@ -142,6 +144,9 @@ class QtConan(ConanFile):
         else:  # python 2 cannot deal with .xz archives
             self.run("wget -qO- %s.tar.xz | tar -xJ " % url)
         shutil.move("qt-everywhere-opensource-src-%s" % self.version, "qt5")
+
+        for patch in sorted(glob.glob("patches/*.patch")):
+            tools.patch(base_path="qt5", patch_file=patch)
 
     def build(self):
         args = ["-confirm-license", "-nomake examples", "-nomake tests",

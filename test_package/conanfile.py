@@ -10,7 +10,7 @@ import shutil
 
 class TestPackageConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
-    generators = "cmake", "qt"
+    generators = "cmake"
 
     def build_with_qmake(self):
         tools.mkdir("qmake_folder")
@@ -36,7 +36,7 @@ class TestPackageConan(ConanFile):
                 qmakeBuild(self)
 
     def build_with_cmake(self):
-        if not self.options["Qt"].shared:
+        if not self.options["qt"].shared:
             self.output.info("disabled cmake test with static Qt, because of https://bugreports.qt.io/browse/QTBUG-38913")
         else:
             self.output.info("Building with CMake")
@@ -57,11 +57,10 @@ class TestPackageConan(ConanFile):
         else:
             bin_path = os.path.join("test_package.app", "Contents", "MacOS")
         bin_path = os.path.join("qmake_folder", bin_path)
-        shutil.copy("qt.conf", bin_path)
         self.run(os.path.join(bin_path, "test_package"))
 
     def test_with_cmake(self):
-        if not self.options["Qt"].shared:
+        if not self.options["qt"].shared:
             self.output.info("disabled cmake test with static Qt, because of https://bugreports.qt.io/browse/QTBUG-38913")
         else:
             self.output.info("Testing CMake")
